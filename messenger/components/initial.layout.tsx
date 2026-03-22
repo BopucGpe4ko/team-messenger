@@ -2,16 +2,21 @@ import { useEffect } from "react";
 import { useAuth } from "@clerk/expo";
 import * as SplashScreen from "expo-splash-screen";
 import { Stack, useRouter, useSegments } from "expo-router";
+import { api } from "../convex/_generated/api";
+import { useConvexAuth, useMutation } from "convex/react";
 
 export default function InitialLayout() {
   const { isSignedIn, isLoaded } = useAuth();
-
+  const { isAuthenticated } = useConvexAuth();
+  const storeUser = useMutation(api.users.storeUser);
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoaded) return;
-
+    if (isAuthenticated) {
+      storeUser();
+    }
     const inAuthScreen = segments[0] === "(auth)";
 
     // Якщо користувач залогінений — забороняємо тільки auth-екрани.
@@ -29,7 +34,7 @@ export default function InitialLayout() {
 
     // Ховаємо splash тільки після редіректу
     SplashScreen.hideAsync();
-  }, [isSignedIn, isLoaded, segments, router]);
+  }, [isSignedIn, isLoaded, segments, router, isAuthenticated, storeUser]);
 
   if (!isLoaded) {
     return null;
