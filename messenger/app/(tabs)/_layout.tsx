@@ -1,64 +1,69 @@
 import { Tabs } from "expo-router";
-import { COLORS } from "@/constants/theme";
 import { MaterialIcons } from "@expo/vector-icons";
+import { COLORS } from "@/constants/theme";
 
-export default function RootLayout() {
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.grey,
+
         tabBarStyle: {
           backgroundColor: COLORS.background,
-          borderTopWidth: 2,
-          borderTopColor: COLORS.surface,
+          borderTopWidth: 0,
           position: "absolute",
           elevation: 0,
-          height: 70,
-          paddingTop: 15,
-          paddingBottom: 10,
+          height: 50,
         },
+
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.grey,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
+          title: "Feed",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="home" size={size} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
-        name="bookmarks"
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="bookmark" size={size} color={color} />
-          ),
-        }}
-      />
+
       <Tabs.Screen
         name="create"
         options={{
+          title: "Create",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="add" size={size} color={color} />
+            <MaterialIcons
+              name="add-circle-outline"
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
+
       <Tabs.Screen
         name="notifications"
         options={{
+          title: "Notifications",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="notifications" size={size} color={color} />
+            <MaterialIcons
+              name="notifications-none"
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
+
       <Tabs.Screen
         name="profile"
         options={{
+          title: "Profile",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size} color={color} />
+            <MaterialIcons name="person-outline" size={size} color={color} />
           ),
         }}
       />
