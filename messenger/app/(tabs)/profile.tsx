@@ -11,10 +11,10 @@ export default function Profile() {
 
       <View style={styles.stats}>
         <Text style={styles.stat}>
-          <Text style={styles.bold}>120</Text> Following
+          <Text style={styles.bold}>120</Text> Followers
         </Text>
         <Text style={styles.stat}>
-          <Text style={styles.bold}>340</Text> Followers
+          <Text style={styles.bold}>80</Text> Following
         </Text>
       </View>
     </View>
@@ -26,31 +26,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
     alignItems: "center",
-    paddingTop: 50,
+    justifyContent: "center",
   },
+
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: COLORS.surfaceLight,
-    marginBottom: 10,
+    marginBottom: 12,
   },
+
   name: {
     color: COLORS.white,
     fontSize: 20,
     fontWeight: "bold",
   },
+
   username: {
     color: COLORS.grey,
+    marginBottom: 10,
   },
+
   stats: {
     flexDirection: "row",
-    marginTop: 10,
     gap: 20,
   },
+
   stat: {
     color: COLORS.grey,
   },
+
   bold: {
     color: COLORS.white,
     fontWeight: "bold",

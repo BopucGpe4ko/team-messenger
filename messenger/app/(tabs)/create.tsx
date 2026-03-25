@@ -1,54 +1,34 @@
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-} from "react-native";
-import { COLORS } from "@/constants/theme";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useState } from "react";
+import { usePostsStore } from "@/store/postsStore";
+import { styles } from "@/assets/styles/create.styles";
 
 export default function Create() {
   const [text, setText] = useState("");
+  const addPost = usePostsStore((state) => state.addPost);
+
+  const handlePost = () => {
+    if (!text.trim()) return;
+
+    addPost(text);
+    setText("");
+  };
 
   return (
     <View style={styles.container}>
+      <Text style={styles.header}>Create Post</Text>
+
       <TextInput
-        placeholder="What's happening?"
-        placeholderTextColor={COLORS.grey}
-        style={styles.input}
-        multiline
         value={text}
         onChangeText={setText}
+        placeholder="What's happening?"
+        placeholderTextColor="#888"
+        style={styles.input}
       />
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={handlePost}>
         <Text style={styles.buttonText}>Post</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    padding: 16,
-  },
-  input: {
-    color: COLORS.white,
-    fontSize: 18,
-    minHeight: 100,
-  },
-  button: {
-    backgroundColor: COLORS.primary,
-    padding: 12,
-    borderRadius: 20,
-    alignSelf: "flex-end",
-    marginTop: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-});

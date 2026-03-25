@@ -13,11 +13,18 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           position: "absolute",
           elevation: 0,
-          height: 50,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 6,
         },
 
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.grey,
+
+        tabBarLabelStyle: {
+          fontSize: 12,
+          marginTop: -2,
+        },
       }}
     >
       <Tabs.Screen

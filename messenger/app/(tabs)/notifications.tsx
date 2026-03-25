@@ -1,25 +1,18 @@
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { COLORS } from "@/constants/theme";
-
-const data = [
-  { id: "1", text: "🔥 Elon liked your post" },
-  { id: "2", text: "👤 New follower: @john" },
-];
 
 export default function Notifications() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Notifications</Text>
 
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Text style={styles.text}>{item.text}</Text>
-          </View>
-        )}
-      />
+      <View style={styles.item}>
+        <Text style={styles.text}>🔔 You have a new follower</Text>
+      </View>
+
+      <View style={styles.item}>
+        <Text style={styles.text}>❤️ Someone liked your post</Text>
+      </View>
     </View>
   );
 }
@@ -28,18 +21,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+    paddingTop: 50,
+    paddingHorizontal: 16,
   },
+
   header: {
     color: COLORS.white,
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    padding: 16,
+    marginBottom: 20,
   },
+
   item: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderColor: COLORS.surfaceLight,
+    backgroundColor: COLORS.surface,
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 10,
   },
+
   text: {
     color: COLORS.white,
   },
