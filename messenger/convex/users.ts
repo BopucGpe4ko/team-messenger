@@ -1,6 +1,12 @@
 import { mutation } from "./_generated/server";
 
-export const storeUser = mutation({
+
+
+
+
+
+
+/*export const storeUser = mutation({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -27,3 +33,4 @@ export const storeUser = mutation({
     });
   },
 });
+*/
