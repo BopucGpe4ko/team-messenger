@@ -8,15 +8,16 @@ import { useConvexAuth, useMutation } from "convex/react";
 export default function InitialLayout() {
   const { isSignedIn, isLoaded } = useAuth();
   const { isAuthenticated } = useConvexAuth();
-  const storeUser = useMutation(api.users.storeUser);
+  const createUser = useMutation(api.users.createUser);
+
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoaded) return;
-    if (isAuthenticated) {
-      storeUser();
-    }
+    // if (isAuthenticated) {
+    //   createUser();
+    // }
     const inAuthScreen = segments[0] === "(auth)";
 
     // Якщо користувач залогінений — забороняємо тільки auth-екрани.
@@ -34,7 +35,7 @@ export default function InitialLayout() {
 
     // Ховаємо splash тільки після редіректу
     SplashScreen.hideAsync();
-  }, [isSignedIn, isLoaded, segments, router, isAuthenticated, storeUser]);
+  }, [isSignedIn, isLoaded, segments, router, isAuthenticated, createUser]);
 
   if (!isLoaded) {
     return null;

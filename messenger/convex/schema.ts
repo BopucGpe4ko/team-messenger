@@ -8,16 +8,21 @@ export default defineSchema({
     email: v.string(),
     bio: v.optional(v.string()),
     image: v.string(),
+
+    // optional additions from other branch
+    externalId: v.optional(v.string()),
+    tokenIdentifier: v.optional(v.string()),
+
+    clerkId: v.string(),
     followers: v.number(),
     following: v.number(),
     posts: v.number(),
-    clerkId: v.string(),
   }).index("by_clerk_id", ["clerkId"]),
 
   posts: defineTable({
     userId: v.id("users"),
-    imageUrl: v.string(),
-    storageId: v.id("storage"),
+    imageUrl: v.string(), // FIXED (not imageURL)
+    storageId: v.id("storage"), // FIXED (not _storage)
     caption: v.optional(v.string()),
     likes: v.number(),
     comments: v.number(),
