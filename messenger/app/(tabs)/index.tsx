@@ -1,17 +1,11 @@
 import { styles } from "@/assets/styles/index.styles";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { usePostsStore } from "@/store/postsStore";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "@clerk/expo";
 
 export default function Feed() {
   const posts = usePostsStore((state) => state.posts);
-
-  let signOut: any = null;
-
-  try {
-    const auth = useAuth();
-    signOut = auth?.signOut;
-  } catch (e) {}
+  const { signOut } = useAuth();
 
   return (
     <View style={styles.container}>
