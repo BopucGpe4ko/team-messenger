@@ -27,6 +27,7 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import InitialLayout from "@/components/initial.layout";
 import ClerkAndConvexProvider from "@/providers/ClerkAndConvexProvider";
+import { tokenCache } from "@clerk/clerk-expo/token-cache";
 
 export default function RootLayout() {
   return (
