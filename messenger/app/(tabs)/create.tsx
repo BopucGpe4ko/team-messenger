@@ -2,6 +2,11 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useState } from "react";
 import { usePostsStore } from "@/store/postsStore";
 import { styles } from "@/assets/styles/create.styles";
+import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
+import { Image } from "expo-image";
+
+
 
 export default function Create() {
   const [text, setText] = useState("");
