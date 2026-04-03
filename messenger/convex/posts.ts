@@ -1,39 +1,24 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { getAuthenticatedUser } from "./users";
 
-// Генерація URL для завантаження файлу
 export const generateUploadUrl = mutation(async (ctx) => {
-  // Перевірка автентифікації
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Unauthorized");
-
-  // Генерація підписаного URL (дійсний ~1 годину)
   return await ctx.storage.generateUploadUrl();
 });
 
-// Створення посту в базі даних
 export const createPost = mutation({
   args: {
-    caption: v.optional(v.string()), // Текст твіту (необов'язковий)
-    storageId: v.id("_storage"), // ID файлу в Storage
+    caption: v.optional(v.string()),
+    storageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
-    // 1. Перевірка автентифікації
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+    const currentUser = await getAuthenticatedUser(ctx);
 
-    // 2. Пошук користувача в БД
-    const currentUser = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-    if (!currentUser) throw new Error("User not found");
-
-    // 3. Отримання публічного URL зображення
     const imageUrl = await ctx.storage.getUrl(args.storageId);
     if (!imageUrl) throw new Error("Image URL not found");
 
-    // 4. Створення посту
     const postId = await ctx.db.insert("posts", {
       userId: currentUser._id,
       imageUrl,
@@ -43,11 +28,108 @@ export const createPost = mutation({
       comments: 0,
     });
 
-    // 5. Оновлення лічильника постів користувача
     await ctx.db.patch(currentUser._id, {
       posts: currentUser.posts + 1,
     });
-
     return postId;
+  },
+});
+
+export const getPosts = query({
+  handler: async (ctx) => {
+    const currentUser = await getAuthenticatedUser(ctx);
+    const posts = await ctx.db.query("posts").order("desc").collect();
+    if (posts.length === 0) return [];
+
+    return await Promise.all(
+      posts.map(async (post) => {
+        const postAuthor = (await ctx.db.get(post.userId))!;
+
+        const like = await ctx.db
+          .query("likes")
+          .withIndex("by_user_and_post", (q) =>
+            q.eq("userId", currentUser._id).eq("postId", post._id),
+          )
+          .first();
+
+        const bookmark = await ctx.db
+          .query("bookmarks")
+          .withIndex("by_both", (q) =>
+            q.eq("userId", currentUser._id).eq("postId", post._id),
+          )
+          .first();
+
+        return {
+          ...post,
+          author: {
+            _id: postAuthor._id,
+            username: postAuthor.username,
+            image: postAuthor.image,
+          },
+          isLiked: !!like,
+          isBookmarked: !!bookmark,
+        };
+      }),
+    );
+  },
+});
+
+export const deletePost = mutation({
+  args: {
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, args) => {
+    // 1. Отримання поточного користувача
+    const currentUser = await getAuthenticatedUser(ctx);
+
+    // 2. Отримання посту
+    const post = await ctx.db.get(args.postId);
+    if (!post) throw new Error("Post not found");
+
+    // 3. Перевірка власника
+    if (post.userId !== currentUser._id) {
+      throw new Error("Not authorized to delete this post");
+    }
+
+    // 4. Видалення пов'язаних лайків
+    const likes = await ctx.db
+      .query("likes")
+      .withIndex("by_post", (q) => q.eq("postId", args.postId))
+      .collect();
+
+    for (const like of likes) {
+      await ctx.db.delete(like._id);
+    }
+
+    // 5. Видалення пов'язаних коментарів
+    const comments = await ctx.db
+      .query("comments")
+      .withIndex("by_post", (q) => q.eq("postId", args.postId))
+      .collect();
+
+    for (const comment of comments) {
+      await ctx.db.delete(comment._id);
+    }
+
+    // 6. Видалення пов'язаних закладок
+    const bookmarks = await ctx.db
+      .query("bookmarks")
+      .withIndex("by_post", (q) => q.eq("postId", args.postId))
+      .collect();
+
+    for (const bookmark of bookmarks) {
+      await ctx.db.delete(bookmark._id);
+    }
+
+    // 7. Видалення файлу зі Storage
+    await ctx.storage.delete(post.storageId);
+
+    // 8. Видалення посту
+    await ctx.db.delete(args.postId);
+
+    // 9. Зменшення лічильника постів користувача
+    await ctx.db.patch(currentUser._id, {
+      posts: Math.max(0, (currentUser.posts || 1) - 1),
+    });
   },
 });
