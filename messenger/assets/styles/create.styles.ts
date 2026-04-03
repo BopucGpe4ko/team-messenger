@@ -1,31 +1,13 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { COLORS } from "@/constants/theme";
 
-
 const { width } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: 50,
-    paddingHorizontal: 16,
   },
-  contentContainer: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  contentDisabled: {
-    opacity: 0.7,
-  },
-
-
-
 
   header: {
     flexDirection: "row",
@@ -36,13 +18,12 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: COLORS.surface,
   },
+
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: COLORS.white,
   },
-
-
 
   shareButton: {
     paddingHorizontal: 12,
@@ -54,6 +35,7 @@ export const styles = StyleSheet.create({
   shareButtonDisabled: {
     opacity: 0.5,
   },
+
   shareText: {
     color: COLORS.primary,
     fontSize: 16,
@@ -62,7 +44,6 @@ export const styles = StyleSheet.create({
   shareTextDisabled: {
     color: COLORS.grey,
   },
-
 
   emptyImageContainer: {
     flex: 1,
@@ -103,7 +84,6 @@ export const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-
   inputSection: {
     padding: 16,
     flex: 1,
@@ -126,8 +106,6 @@ export const styles = StyleSheet.create({
     minHeight: 40,
   },
 
-
-  
   input: {
     backgroundColor: COLORS.surface,
     color: COLORS.white,
