@@ -112,4 +112,10 @@ export const styles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderTopColor: COLORS.surface,
   },
+
+  logout: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: "600",
+  },
 });
