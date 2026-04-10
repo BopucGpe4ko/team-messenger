@@ -50,6 +50,7 @@ export default function Feed() {
           </View>
         )}
       />
+      
     </View>
   );
 }
