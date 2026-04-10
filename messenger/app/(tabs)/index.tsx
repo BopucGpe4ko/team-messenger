@@ -1,55 +1,48 @@
-import { styles } from "@/assets/styles/index.styles";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { usePostsStore } from "@/store/postsStore";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
 import { useAuth } from "@clerk/expo";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import Story from "../../components/Story";
+import { Post } from "../../components/Post";
+import { Loader } from "../../components/Loader";
+import { STORIES } from "../../components/mock-data";
+import { styles } from "../../assets/styles/feed.styles";
+import StoriesSection from "../../components/StoriesSection";
 
 export default function Feed() {
-  const posts = usePostsStore((state) => state.posts);
   const { signOut } = useAuth();
+  const posts = useQuery(api.posts.getPosts);
+
+  if (posts === undefined) {
+    return <Loader />;
+  }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={posts}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
         ListHeaderComponent={
           <>
-            <View style={styles.headerRow}>
-              <Text style={styles.header}>Feed</Text>
+            {/* HEADER */}
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>Feed</Text>
 
-              <TouchableOpacity
-                style={styles.signOutBtn}
-                onPress={() => {
-                  if (signOut) {
-                    signOut();
-                  } else {
-                    console.log("SignOut not ready");
-                  }
-                }}
-              >
-                <Text style={styles.signOutText}>Sign Out</Text>
+              <TouchableOpacity onPress={() => signOut()}>
+                <Text style={{ color: "red" }}>Logout</Text>
               </TouchableOpacity>
             </View>
+
+            {/* STORIES */}
+            <StoriesSection />
           </>
         }
-        renderItem={({ item }) => (
-          <View style={styles.post}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.name[0]}</Text>
-            </View>
-
-            <View style={styles.content}>
-              <Text style={styles.name}>
-                {item.name}{" "}
-                <Text style={styles.username}>{item.username} · now</Text>
-              </Text>
-
-              <Text style={styles.text}>{item.text}</Text>
-            </View>
-          </View>
-        )}
+        renderItem={({ item }) => <Post post={item} />}
       />
-    </View>
+    </SafeAreaView>
   );
 }
