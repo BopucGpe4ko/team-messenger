@@ -1,57 +1,55 @@
-import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
-import { useAuth } from "@clerk/expo";
+import { styles } from "@/assets/styles/index.styles";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-import Story from "@/components/Story";
-import Post from "@/components/Post";
-import Loader from "@/components/Loader";
-import { STORIES } from "@/constants/mock-data";
-import styles from "@/styles/feed.styles";
+import { usePostsStore } from "@/store/postsStore";
+import { useAuth } from "@clerk/expo";
 
 export default function Feed() {
+  const posts = usePostsStore((state) => state.posts);
   const { signOut } = useAuth();
 
-  // 🔥 Convex вместо Zustand
-  const posts = useQuery(api.posts.getPosts);
-
-  // 🔄 Loader
-  if (posts === undefined) {
-    return <Loader />;
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <FlatList
         data={posts}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        // 🔝 HEADER + STORIES
         ListHeaderComponent={
           <>
-            {/* HEADER */}
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Feed</Text>
+            <View style={styles.headerRow}>
+              <Text style={styles.header}>Feed</Text>
 
-              <TouchableOpacity onPress={() => signOut()}>
-                <Text style={styles.logout}>Logout</Text>
+              <TouchableOpacity
+                style={styles.signOutBtn}
+                onPress={() => {
+                  if (signOut) {
+                    signOut();
+                  } else {
+                    console.log("SignOut not ready");
+                  }
+                }}
+              >
+                <Text style={styles.signOutText}>Sign Out</Text>
               </TouchableOpacity>
             </View>
-
-            {/* STORIES */}
-            <FlatList
-              data={STORIES}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => <Story story={item} />}
-            />
           </>
         }
-        // 🧾 POSTS
-        renderItem={({ item }) => <Post post={item} />}
+        renderItem={({ item }) => (
+          <View style={styles.post}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{item.name[0]}</Text>
+            </View>
+
+            <View style={styles.content}>
+              <Text style={styles.name}>
+                {item.name}{" "}
+                <Text style={styles.username}>{item.username} · now</Text>
+              </Text>
+
+              <Text style={styles.text}>{item.text}</Text>
+            </View>
+          </View>
+        )}
       />
-    </SafeAreaView>
+    </View>
   );
 }
