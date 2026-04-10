@@ -41,9 +41,10 @@ export const getPosts = query({
     const posts = await ctx.db.query("posts").order("desc").collect();
     if (posts.length === 0) return [];
 
-    return await Promise.all(
+    const result = await Promise.all(
       posts.map(async (post) => {
-        const postAuthor = (await ctx.db.get(post.userId))!;
+        const postAuthor = await ctx.db.get(post.userId);
+        if (!postAuthor) return null;
 
         const like = await ctx.db
           .query("likes")
@@ -71,6 +72,8 @@ export const getPosts = query({
         };
       }),
     );
+
+    return result.filter((p): p is NonNullable<typeof p> => p !== null);
   },
 });
 
@@ -79,57 +82,43 @@ export const deletePost = mutation({
     postId: v.id("posts"),
   },
   handler: async (ctx, args) => {
-    // 1. Отримання поточного користувача
     const currentUser = await getAuthenticatedUser(ctx);
 
-    // 2. Отримання посту
     const post = await ctx.db.get(args.postId);
     if (!post) throw new Error("Post not found");
 
-    // 3. Перевірка власника
     if (post.userId !== currentUser._id) {
-      throw new Error("Not authorized to delete this post");
+      throw new Error("Not authorized");
     }
 
-    // 4. Видалення пов'язаних лайків
     const likes = await ctx.db
       .query("likes")
       .withIndex("by_post", (q) => q.eq("postId", args.postId))
       .collect();
 
-    for (const like of likes) {
-      await ctx.db.delete(like._id);
-    }
+    await Promise.all(likes.map((l) => ctx.db.delete(l._id)));
 
-    // 5. Видалення пов'язаних коментарів
     const comments = await ctx.db
       .query("comments")
       .withIndex("by_post", (q) => q.eq("postId", args.postId))
       .collect();
 
-    for (const comment of comments) {
-      await ctx.db.delete(comment._id);
-    }
+    await Promise.all(comments.map((c) => ctx.db.delete(c._id)));
 
-    // 6. Видалення пов'язаних закладок
     const bookmarks = await ctx.db
       .query("bookmarks")
       .withIndex("by_post", (q) => q.eq("postId", args.postId))
       .collect();
 
-    for (const bookmark of bookmarks) {
-      await ctx.db.delete(bookmark._id);
-    }
+    await Promise.all(bookmarks.map((b) => ctx.db.delete(b._id)));
 
-    // 7. Видалення файлу зі Storage
     await ctx.storage.delete(post.storageId);
-
-    // 8. Видалення посту
     await ctx.db.delete(args.postId);
 
-    // 9. Зменшення лічильника постів користувача
     await ctx.db.patch(currentUser._id, {
-      posts: Math.max(0, (currentUser.posts || 1) - 1),
+      posts: Math.max(0, currentUser.posts - 1),
     });
+
+    return true;
   },
 });

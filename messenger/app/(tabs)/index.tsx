@@ -4,10 +4,8 @@ import { useAuth } from "@clerk/expo";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import Story from "../../components/Story";
 import { Post } from "../../components/Post";
 import { Loader } from "../../components/Loader";
-import { STORIES } from "../../components/mock-data";
 import { styles } from "../../assets/styles/feed.styles";
 import StoriesSection from "../../components/StoriesSection";
 
