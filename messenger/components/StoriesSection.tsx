@@ -1,7 +1,7 @@
 import { FlatList, View } from "react-native";
 import Story from "@/components/Story";
 import { STORIES } from "@/constants/mock-data";
-import { styles } from "@/styles/feed.styles";
+import { styles } from "@/assets/styles/feed.styles";
 
 export default function StoriesSection() {
   return (

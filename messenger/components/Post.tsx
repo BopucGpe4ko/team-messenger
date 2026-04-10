@@ -9,8 +9,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@clerk/expo";
-import { CommentsModal } from "./CommentsModal";
-import { styles } from "@/styles/feed.styles";
+import { CommentsModal } from "@/components/CommentsModal";
+import { styles } from "@/assets/styles/feed.styles";
 
 type PostProps = {
   post: {
@@ -44,7 +44,7 @@ export const Post = ({ post }: PostProps) => {
     user ? { clerkId: user.id } : "skip",
   );
 
-  const toggleLike = useMutation(api.likes.toggleLike);
+  const toggleLike = useMutation(api.posts.toggleLike);
   const toggleBookmark = useMutation(api.bookmarks.toggleBookmark);
   const deletePost = useMutation(api.posts.deletePost);
 
