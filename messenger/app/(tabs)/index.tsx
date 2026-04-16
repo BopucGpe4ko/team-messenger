@@ -1,5 +1,5 @@
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
+import { useQuery,useConvexAuth } from "convex/react";
 import { useAuth } from "@clerk/expo";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,7 +11,10 @@ import StoriesSection from "../../components/StoriesSection";
 
 export default function Feed() {
   const { signOut } = useAuth();
-  const posts = useQuery(api.posts.getPosts);
+  const { isAuthenticated } = useConvexAuth();
+  const posts = useQuery(api.posts.getPosts, isAuthenticated ? {} : "skip");
+ 
+  
 
   if (posts === undefined) {
     return <Loader />;
