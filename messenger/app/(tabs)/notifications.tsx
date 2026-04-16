@@ -1,88 +1,61 @@
-import { View, Text, Image, FlatList } from "react-native";
-import { styles } from "@/assets/styles/notifications.styles";
-
-import { useQuery, useConvexAuth } from "convex/react";
+import { COLORS } from "@/constants/theme";
+import { Loader } from "@/components/Loader";
+import NoNotificationFound from "@/components/NoNotificationsFound";
+import { NotificationItem } from "@/components/NotificationItem";
 import { api } from "@/convex/_generated/api";
+import { useConvexAuth, useQuery } from "convex/react";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
-export default function Notifications() {
+export default function ScreenNotifications() {
   const { isAuthenticated } = useConvexAuth();
 
   const notifications = useQuery(
-    api.notifications.getNotifications,
+    api.notification.getNotifications,
     isAuthenticated ? {} : "skip",
   );
 
   if (notifications === undefined) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.emptyText}>Loading...</Text>
-      </View>
-    );
+    return <Loader />;
   }
 
   if (notifications.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.emptyText}>No notifications yet</Text>
-      </View>
-    );
+    return <NoNotificationFound />;
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Notifications</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Notifications</Text>
+      </View>
 
       <FlatList
         data={notifications}
+        renderItem={({ item }) => <NotificationItem notification={item} />}
         keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => {
-          const type = item.type;
-
-          return (
-            <View style={styles.notificationItem}>
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={{ uri: item.sender?.image }}
-                  style={styles.avatar}
-                />
-
-                <View
-                  style={[
-                    styles.iconBadge,
-                    {
-                      backgroundColor:
-                        type === "like"
-                          ? "#ef4444"
-                          : type === "comment"
-                            ? "#3b82f6"
-                            : "#8b5cf6",
-                    },
-                  ]}
-                >
-                  <Text style={{ fontSize: 10 }}>
-                    {type === "like" ? "❤️" : type === "comment" ? "💬" : "👤"}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.content}>
-                <Text style={styles.text}>
-                  <Text style={styles.username}>{item.sender?.username} </Text>
-
-                  {type === "like" && "liked your post"}
-                  {type === "follow" && "started following you"}
-                  {type === "comment" && `commented: ${item.comment?.content}`}
-                </Text>
-
-                <Text style={styles.time}>
-                  {new Date(item._creationTime).toLocaleTimeString()}
-                </Text>
-              </View>
-            </View>
-          );
-        }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContainer}
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: COLORS.surface,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: "JetBrainsMono-Medium",
+    color: COLORS.primary,
+  },
+  listContainer: {
+    padding: 16,
+  },
+});
