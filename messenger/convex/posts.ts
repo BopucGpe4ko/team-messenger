@@ -55,7 +55,7 @@ export const getPosts = query({
 
         const bookmark = await ctx.db
           .query("bookmarks")
-          .withIndex("by_both", (q) =>
+          .withIndex("by_user_and_post", (q) =>
             q.eq("userId", currentUser._id).eq("postId", post._id),
           )
           .first();
@@ -166,5 +166,75 @@ export const toggleLike = mutation({
       }
       return true; // liked
     }
+  },
+});
+
+export const getSavedPosts = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthenticatedUser(ctx);
+
+    const bookmarks = await ctx.db
+      .query("bookmarks")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    const posts = await Promise.all(
+      bookmarks.map(async (bookmark) => {
+        return await ctx.db.get(bookmark.postId);
+      }),
+    );
+
+    return posts.filter((post) => post !== null);
+  },
+});
+
+export const getPostById = query({
+  args: {
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, args) => {
+    console.log(args.postId, typeof args.postId);
+
+    const post = await ctx.db.get(args.postId);
+    if (!post) throw new Error("Post not found");
+
+    const author = await ctx.db.get(post?.userId);
+    if (!author) throw new Error("User not found");
+
+    const currentUser = await getAuthenticatedUser(ctx);
+    let isLiked = false;
+    let isBookmarked = false;
+
+    if (currentUser) {
+      const like = await ctx.db
+        .query("likes")
+        .withIndex("by_user_and_post", (q) =>
+          q.eq("userId", currentUser._id).eq("postId", args.postId),
+        )
+        .unique();
+
+      if (like) isLiked = true;
+
+      const bookmark = await ctx.db
+        .query("bookmarks")
+        .withIndex("by_user_and_post", (q) =>
+          q.eq("userId", currentUser._id).eq("postId", args.postId),
+        )
+        .unique();
+
+      if (bookmark) isBookmarked = true;
+    }
+
+    return {
+      ...post,
+      author: {
+        _id: author!._id,
+        username: author!.username,
+        image: author!.image,
+      },
+      isLiked,
+      isBookmarked,
+    };
   },
 });

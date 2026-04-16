@@ -1,72 +1,78 @@
-// import {
-//   View,
-//   Text,
-//   FlatList,
-//   TouchableOpacity,
-//   Dimensions,
-// } from "react-native";
-// import { useQuery, useConvexAuth } from "convex/react";
-// import { api } from "@/convex/_generated/api";
-// import { Image } from "expo-image";
-// import { Link } from "expo-router";
-// import { COLORS } from "@/constants/theme";
-// import { Loader } from "@/components/Loader";
+import { Link } from "expo-router";
+import { TouchableOpacity, View, Text, ScrollView } from "react-native";
+import { styles } from "@/assets/styles/feed.styles";
+import { useConvexAuth, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Loader } from "@/components/Loader";
+import { Image } from "expo-image";
+import { COLORS } from "@/constants/theme";
 
-// const NoBookmarksFound = () => (
-//   <View
-//     style={{
-//       flex: 1,
-//       justifyContent: "center",
-//       alignItems: "center",
-//       backgroundColor: COLORS.background,
-//     }}
-//   >
-//     <Text style={{ color: COLORS.white, fontSize: 18, fontWeight: "600" }}>
-//       No Bookmarks Found
-//     </Text>
-//     <Text style={{ color: COLORS.grey, marginTop: 8 }}>
-//       Saved posts will appear here
-//     </Text>
-//   </View>
-// );
+const NoBookmarksFound = () => (
+  <View
+    style={{
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.background,
+    }}
+  >
+    <Text style={{ color: COLORS.white, fontSize: 18, fontWeight: "600" }}>
+      No Bookmarks Found
+    </Text>
+    <Text style={{ color: COLORS.grey, marginTop: 8 }}>
+      Saved posts will appear here
+    </Text>
+  </View>
+);
 
-// export default function BookmarksScreen() {
-//   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+export default function ScreenBookmarks() {
+  const { isAuthenticated } = useConvexAuth();
+  const bookmarkedPosts = useQuery(
+    api.bookmarks.getBookmarkedPosts,
+    isAuthenticated ? {} : "skip",
+  );
 
-//   const bookmarkedPosts = useQuery(
-//     (api.posts as any).getSavedPosts,
-//     isAuthenticated ? {} : "skip",
-//   );
+  if (bookmarkedPosts === undefined) {
+    return <Loader />;
+  }
 
-//   const screenWidth = Dimensions.get("window").width;
+  if (bookmarkedPosts.length === 0) {
+    return <NoBookmarksFound />;
+  }
 
-//   if (authLoading || bookmarkedPosts === undefined) return <Loader />;
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Bookmarks</Text>
+      </View>
 
-//   if (!bookmarkedPosts || bookmarkedPosts.length === 0) {
-//     return <NoBookmarksFound />;
-//   }
-
-//   return (
-//     <View style={{ flex: 1, backgroundColor: COLORS.background }}>
-//       {/*Grid layout*/}
-//       <FlatList
-//         data={bookmarkedPosts}
-//         keyExtractor={(item) => item._id}
-//         numColumns={3}
-//         renderItem={({ item }) => (
-//           <View style={{ width: screenWidth / 3, aspectRatio: 1, padding: 1 }}>
-//             <Link href={`/post/${item._id}`} asChild>
-//               <TouchableOpacity activeOpacity={0.8}>
-//                 <Image
-//                   source={item.imageUrl}
-//                   style={{ width: "100%", height: "100%" }}
-//                   contentFit="cover"
-//                 />
-//               </TouchableOpacity>
-//             </Link>
-//           </View>
-//         )}
-//       />
-//     </View>
-//   );
-// }
+      <ScrollView
+        contentContainerStyle={{
+          padding: 8,
+          flexDirection: "row",
+          flexWrap: "wrap",
+        }}
+      >
+        {bookmarkedPosts.map((post) => {
+          if (!post) return null;
+          return (
+            <View key={post._id} style={{ width: "33.33%", padding: 1 }}>
+              {/* Обгортаємо зображення в Link */}
+              <Link href={`/(post)/${post._id}`} asChild>
+                <TouchableOpacity activeOpacity={0.8}>
+                  <Image
+                    source={post.imageUrl}
+                    style={{ width: "100%", aspectRatio: 1 }}
+                    contentFit="cover"
+                    transition={200}
+                    cachePolicy="memory-disk"
+                  />
+                </TouchableOpacity>
+              </Link>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
