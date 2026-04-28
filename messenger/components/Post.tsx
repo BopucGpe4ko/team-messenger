@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
+import { styles } from "@/assets/styles/feed.styles";
 import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/theme";
@@ -9,8 +10,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@clerk/expo";
-import { CommentsModal } from "@/components/CommentsModal";
-import { styles } from "@/assets/styles/feed.styles";
+import { CommentsModal } from "./CommentsModal";
 
 type PostProps = {
   post: {
@@ -31,23 +31,26 @@ type PostProps = {
 };
 
 export const Post = ({ post }: PostProps) => {
+  // State
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likes);
   const [commentsCount, setCommentsCount] = useState(post.comments);
   const [showComments, setShowComments] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked);
 
+  // Current user
   const { user } = useUser();
-
   const currentUser = useQuery(
     api.users.getUserByClerkId,
     user ? { clerkId: user.id } : "skip",
   );
 
+  // Mutations
   const toggleLike = useMutation(api.posts.toggleLike);
   const toggleBookmark = useMutation(api.bookmarks.toggleBookmark);
   const deletePost = useMutation(api.posts.deletePost);
 
+  // Handlers
   const handleLike = async () => {
     try {
       const newIsLiked = await toggleLike({ postId: post._id });
@@ -77,12 +80,13 @@ export const Post = ({ post }: PostProps) => {
 
   return (
     <View style={styles.post}>
+      {/* HEADER */}
       <View style={styles.postHeader}>
         <Link
           href={
             currentUser?._id === post.author._id
               ? "/(tabs)/profile"
-              : (`/user/${post.author._id}` as any)
+              : `/(user)/${post.author._id}`
           }
           asChild
         >
@@ -98,6 +102,7 @@ export const Post = ({ post }: PostProps) => {
           </TouchableOpacity>
         </Link>
 
+        {/* Delete or Menu button */}
         {post.author._id === currentUser?._id ? (
           <TouchableOpacity onPress={handleDelete}>
             <Ionicons name="trash-outline" size={20} color={COLORS.primary} />
@@ -113,6 +118,7 @@ export const Post = ({ post }: PostProps) => {
         )}
       </View>
 
+      {/* IMAGE */}
       <Image
         source={post.imageUrl}
         style={styles.postImage}
@@ -121,8 +127,10 @@ export const Post = ({ post }: PostProps) => {
         transition={200}
       />
 
+      {/* ACTIONS */}
       <View style={styles.postActions}>
         <View style={styles.postActionsLeft}>
+          {/* Like */}
           <TouchableOpacity onPress={handleLike}>
             <Ionicons
               name={isLiked ? "heart" : "heart-outline"}
@@ -131,6 +139,7 @@ export const Post = ({ post }: PostProps) => {
             />
           </TouchableOpacity>
 
+          {/* Comment */}
           <TouchableOpacity onPress={() => setShowComments(true)}>
             <Ionicons
               name={commentsCount > 0 ? "chatbubble" : "chatbubble-outline"}
@@ -140,6 +149,7 @@ export const Post = ({ post }: PostProps) => {
           </TouchableOpacity>
         </View>
 
+        {/* Bookmark */}
         <TouchableOpacity onPress={handleBookmark}>
           <Ionicons
             name={isBookmarked ? "bookmark" : "bookmark-outline"}
@@ -149,6 +159,7 @@ export const Post = ({ post }: PostProps) => {
         </TouchableOpacity>
       </View>
 
+      {/* POST INFO */}
       <View style={styles.postInfo}>
         <Text style={styles.likesText}>
           {likesCount > 0
@@ -176,11 +187,12 @@ export const Post = ({ post }: PostProps) => {
         </Text>
       </View>
 
+      {/* Comments Modal */}
       <CommentsModal
         postId={post._id}
         visible={showComments}
         onClose={() => setShowComments(false)}
-        onCommentsAdd={() => setCommentsCount((prev) => prev + 1)}
+        onCommentsAdd={() => setCommentsCount(commentsCount + 1)}
       />
     </View>
   );

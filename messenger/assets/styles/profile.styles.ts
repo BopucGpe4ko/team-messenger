@@ -1,236 +1,267 @@
-import { StyleSheet } from "react-native";
 import { COLORS } from "@/constants/theme";
+import { Dimensions, StyleSheet } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
-  // ================= HEADER =================
+  // ==================== CONTAINER ====================
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+
+  // ==================== HEADER ====================
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderBottomColor: COLORS.surface,
   },
-
-  headerTitle: {
-    color: COLORS.white,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-
   headerLeft: {
-    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
   },
-
   username: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.grey,
-    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: "700",
+    color: COLORS.white,
   },
-
   headerRight: {
-    flex: 1,
-    alignItems: "flex-end",
+    flexDirection: "row",
+    gap: 16,
+  },
+  headerIcon: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: COLORS.white,
   },
 
-  logoutButton: {
-    padding: 8,
-  },
-
-  // ================= PROFILE INFO =================
+  // ==================== PROFILE INFO ====================
   profileInfo: {
     padding: 16,
   },
-
-  topSection: {
+  avatarAndStats: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
+    alignItems: "center",
+    marginBottom: 16,
   },
-
   avatarContainer: {
+    marginRight: 32,
+  },
+  avatar: {
     width: 86,
     height: 86,
     borderRadius: 43,
-    overflow: "hidden",
-    backgroundColor: COLORS.surface,
+    borderWidth: 2,
+    borderColor: COLORS.surface,
   },
 
-  avatar: {
-    width: "100%",
-    height: "100%",
-  },
-
+  // ==================== STATS ====================
   statsContainer: {
+    flex: 1,
     flexDirection: "row",
-    gap: 20,
-    alignItems: "center",
+    justifyContent: "space-around",
   },
-
   statItem: {
     alignItems: "center",
   },
-
   statNumber: {
+    fontSize: 17,
+    fontWeight: "700",
     color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-
-  statLabel: {
-    color: COLORS.grey,
-    fontSize: 12,
-  },
-
-  name: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "600",
     marginBottom: 4,
   },
-
-  bio: {
+  statLabel: {
+    fontSize: 13,
     color: COLORS.grey,
-    fontSize: 14,
-    marginBottom: 12,
   },
 
-  // ================= ACTION BUTTONS =================
+  // ==================== NAME & BIO ====================
+  name: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: COLORS.white,
+    marginBottom: 4,
+  },
+  bio: {
+    fontSize: 14,
+    color: COLORS.white,
+    lineHeight: 20,
+  },
+
+  // ==================== ACTION BUTTONS ====================
   actionButtons: {
     flexDirection: "row",
-    gap: 10,
+    gap: 8,
+    marginTop: 8,
   },
-
   editButton: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: COLORS.surfaceLight,
+    backgroundColor: COLORS.surface,
+    padding: 8,
+    borderRadius: 8,
     alignItems: "center",
   },
-
   editButtonText: {
     color: COLORS.white,
     fontWeight: "600",
-  },
-
-  shareButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.surfaceLight,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  // ================= GRID =================
-  grid: {
-    marginTop: 10,
-  },
-
-  gridItem: {
-    flex: 1,
-    aspectRatio: 1,
-    margin: 1,
-    backgroundColor: COLORS.surface,
-  },
-
-  gridImage: {
-    width: "100%",
-    height: "100%",
-  },
-
-  emptyContainer: {
-    alignItems: "center",
-    marginTop: 40,
-  },
-
-  emptyText: {
-    color: COLORS.grey,
     fontSize: 14,
   },
+  shareButton: {
+    backgroundColor: COLORS.surface,
+    padding: 8,
+    borderRadius: 8,
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-  // ================= MODALS =================
+  // ==================== FOLLOW BUTTONS ====================
+  followButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  followingButton: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  followButtonText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  followingButtonText: {
+    color: COLORS.white,
+    textAlign: "center",
+  },
+
+  // ==================== POSTS GRID ====================
+  postsGrid: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  gridItem: {
+    flex: 1 / 3,
+    aspectRatio: 1,
+    padding: 1,
+  },
+  gridImage: {
+    flex: 1,
+  },
+
+  // ==================== NO POSTS ====================
+  noPostsContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 48,
+    gap: 12,
+    flex: 1,
+  },
+  noPostsText: {
+    color: COLORS.grey,
+    fontSize: 16,
+  },
+
+  // ==================== EDIT PROFILE MODAL ====================
   modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.95)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
-
   modalContent: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  modalImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
-  },
-
-  closeButton: {
-    position: "absolute",
-    top: 40,
-    right: 20,
-    zIndex: 10,
-  },
-
-  // ================= EDIT PROFILE MODAL =================
-  editModalContainer: {
-    flex: 1,
     backgroundColor: COLORS.background,
-    padding: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    minHeight: 400,
   },
-
-  editHeader: {
+  modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
   },
-
-  editTitle: {
+  modalTitle: {
     color: COLORS.white,
     fontSize: 18,
-    fontWeight: "bold",
-  },
-
-  saveButton: {
-    color: COLORS.primary,
     fontWeight: "600",
   },
 
-  // ================= INPUT =================
+  // ==================== INPUT ====================
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    color: COLORS.grey,
+    marginBottom: 8,
+    fontSize: 14,
+  },
   input: {
     backgroundColor: COLORS.surface,
-    borderRadius: 10,
+    borderRadius: 8,
     padding: 12,
     color: COLORS.white,
-    marginBottom: 12,
+    fontSize: 16,
   },
-
-  textarea: {
+  bioInput: {
     height: 100,
     textAlignVertical: "top",
   },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
+
+  // ==================== SAVE BUTTON ====================
+  saveButton: {
+    backgroundColor: COLORS.primary,
+    padding: 16,
+    borderRadius: 8,
     alignItems: "center",
+    marginTop: 20,
+  },
+  saveButtonText: {
+    color: COLORS.background,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  // ==================== POST DETAIL MODAL ====================
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
     justifyContent: "center",
   },
-
-  stat: {
-    color: COLORS.grey,
+  postDetailContainer: {
+    backgroundColor: COLORS.background,
+    maxHeight: height * 0.9,
+  },
+  postDetailHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    padding: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: COLORS.surface,
+  },
+  postDetailImage: {
+    width: width,
+    height: width,
   },
 
-  bold: {
-    color: COLORS.white,
-    fontWeight: "bold",
+  // ==================== CENTERED ====================
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
