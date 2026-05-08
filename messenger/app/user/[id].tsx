@@ -1,41 +1,54 @@
-import { View, Text, TouchableOpacity, ScrollView ,StyleSheet} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { Image } from "expo-image";
-//import { styles } from "@/assets/styles/profile.styles"; РОЗКОМЕНТИТИ
 import { useAuth } from "@clerk/expo";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Loader } from "@/components/Loader";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/theme";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { Id } from "@/convex/_generated/dataModel";
 
-
-export default function ProfileScreen() {
-  const { signOut, userId } = useAuth();
+export default function UserProfileScreen() {
+  const { userId: clerkId } = useAuth();
   const router = useRouter();
+  const { id } = useLocalSearchParams();
 
   const currentUser = useQuery(
     api.users.getUserByClerkId,
-    userId ? { clerkId: userId } : "skip"
+    clerkId ? { clerkId } : "skip"
   );
 
-  if (!currentUser) return <Loader />;
+  const profileUser = useQuery(
+    api.users.get,
+    id ? { id: id as Id<"users"> } : "skip"
+  );
+
+  const getOrCreateConversation = useMutation(api.chat.getOrCreateConversation);
+
+  if (!currentUser || !profileUser) return <Loader />;
+
+  const handleMessagePress = async () => {
+    try {
+      const conversationId = await getOrCreateConversation({
+        userId: currentUser._id,
+        otherUserId: profileUser._id,
+      });
+      router.push(`/chat/${conversationId}`);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+    }
+  };
 
   return (
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.username}>{currentUser.username}</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIcon} onPress={() => router.push("/chats")}>
-            <Ionicons name="chatbubble-outline" size={24} color={COLORS.white} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIcon} onPress={() => signOut()}>
-            <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{profileUser.username}</Text>
+        <View style={styles.placeholder} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -44,7 +57,7 @@ export default function ProfileScreen() {
           <View style={styles.avatarAndStats}>
             <View style={styles.avatarContainer}>
               <Image
-                source={currentUser.image}
+                source={profileUser.image}
                 style={styles.avatar}
                 contentFit="cover"
                 transition={200}
@@ -53,31 +66,32 @@ export default function ProfileScreen() {
 
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{currentUser.posts}</Text>
+                <Text style={styles.statNumber}>{profileUser.posts}</Text>
                 <Text style={styles.statLabel}>Posts</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{currentUser.followers}</Text>
+                <Text style={styles.statNumber}>{profileUser.followers}</Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{currentUser.following}</Text>
+                <Text style={styles.statNumber}>{profileUser.following}</Text>
                 <Text style={styles.statLabel}>Following</Text>
               </View>
             </View>
           </View>
 
           {/* Name and Bio */}
-          <Text style={styles.name}>{currentUser.fullname}</Text>
-          {currentUser.bio && <Text style={styles.bio}>{currentUser.bio}</Text>}
+          <Text style={styles.name}>{profileUser.fullname}</Text>
+          {profileUser.bio && <Text style={styles.bio}>{profileUser.bio}</Text>}
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.editButton}>
-              <Text style={styles.editButtonText}>Edit Profile</Text>
+            <TouchableOpacity style={styles.followButton}>
+              <Text style={styles.followButtonText}>Follow</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.shareButton}>
-              <Ionicons name="share-outline" size={20} color={COLORS.white} />
+            <TouchableOpacity style={styles.messageButton} onPress={handleMessagePress}>
+              <Ionicons name="chatbubble-outline" size={20} color={COLORS.white} />
+              <Text style={styles.messageButtonText}>Message</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -86,9 +100,7 @@ export default function ProfileScreen() {
   );
 }
 
-
-
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -102,26 +114,16 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: COLORS.surface,
   },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  username: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: COLORS.white,
-  },
-  headerRight: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  headerIcon: {
+  backButton: {
     padding: 4,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "700",
     color: COLORS.white,
+  },
+  placeholder: {
+    width: 32,
   },
   profileInfo: {
     padding: 16,
@@ -169,37 +171,38 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.white,
     lineHeight: 20,
+    marginBottom: 12,
   },
   actionButtons: {
     flexDirection: "row",
     gap: 8,
     marginTop: 8,
   },
-  editButton: {
+  followButton: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    padding: 8,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  followButtonText: {
+    color: COLORS.white,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  messageButton: {
     flex: 1,
     backgroundColor: COLORS.surface,
     padding: 8,
     borderRadius: 8,
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
   },
-  editButtonText: {
+  messageButtonText: {
     color: COLORS.white,
     fontWeight: "600",
     fontSize: 14,
   },
-  shareButton: {
-    backgroundColor: COLORS.surface,
-    padding: 8,
-    borderRadius: 8,
-    aspectRatio: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-})
-
-
-
-
-
-
-
+});
