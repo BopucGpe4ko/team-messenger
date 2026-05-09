@@ -1,10 +1,15 @@
-import { View, Text, TouchableOpacity } from "react-native";
-import { Image } from "expo-image";
 import { styles } from "@/assets/styles/feed.styles";
+import { Image } from "expo-image";
+import { Text, TouchableOpacity, View } from "react-native";
 
-export default function Story({ story }: { story: any }) {
+type Props = {
+  story: any;
+  onPress?: () => void;
+};
+
+export default function Story({ story, onPress }: Props) {
   return (
-    <TouchableOpacity style={styles.storyWrapper}>
+    <TouchableOpacity style={styles.storyWrapper} onPress={onPress}>
       <View style={[styles.storyRing, !story.hasStory && styles.noStory]}>
         <Image source={story.avatar} style={styles.storyAvatar} />
       </View>
