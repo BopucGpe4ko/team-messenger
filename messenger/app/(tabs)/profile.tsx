@@ -21,6 +21,7 @@ import { Doc } from "@/convex/_generated/dataModel";
 import { Loader } from "@/components/Loader";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/theme";
+import { useRouter } from "expo-router";
 
 function NoPostsFound() {
   return (
@@ -33,6 +34,7 @@ function NoPostsFound() {
 
 export default function ProfileScreen() {
   const { signOut, userId } = useAuth();
+  const router = useRouter();
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Doc<"posts"> | null>(null);
@@ -50,7 +52,6 @@ export default function ProfileScreen() {
     bio: "",
   });
 
-  // синхронизация после загрузки пользователя
   useEffect(() => {
     if (currentUser) {
       setEditedProfile({
@@ -71,10 +72,26 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.username}>{currentUser.username}</Text>
-        <TouchableOpacity onPress={() => signOut()}>
-          <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <Text style={styles.username}>{currentUser.username}</Text>
+        </View>
+
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.headerIcon}
+            onPress={() => router.push("/chats")}
+          >
+            <Ionicons
+              name="chatbubble-outline"
+              size={24}
+              color={COLORS.white}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.headerIcon} onPress={() => signOut()}>
+            <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -110,6 +127,7 @@ export default function ProfileScreen() {
           </View>
 
           <Text style={styles.name}>{currentUser.fullname}</Text>
+
           {currentUser.bio && <Text style={styles.bio}>{currentUser.bio}</Text>}
 
           <View style={styles.actionButtons}>
@@ -177,6 +195,7 @@ export default function ProfileScreen() {
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Edit Profile</Text>
+
                 <TouchableOpacity onPress={() => setIsEditModalVisible(false)}>
                   <Ionicons name="close" size={24} color={COLORS.white} />
                 </TouchableOpacity>
@@ -186,7 +205,10 @@ export default function ProfileScreen() {
                 style={styles.input}
                 value={editedProfile.fullname}
                 onChangeText={(text) =>
-                  setEditedProfile((prev) => ({ ...prev, fullname: text }))
+                  setEditedProfile((prev) => ({
+                    ...prev,
+                    fullname: text,
+                  }))
                 }
                 placeholder="Name"
                 placeholderTextColor={COLORS.grey}
@@ -196,7 +218,10 @@ export default function ProfileScreen() {
                 style={[styles.input, { height: 80 }]}
                 value={editedProfile.bio}
                 onChangeText={(text) =>
-                  setEditedProfile((prev) => ({ ...prev, bio: text }))
+                  setEditedProfile((prev) => ({
+                    ...prev,
+                    bio: text,
+                  }))
                 }
                 placeholder="Bio"
                 multiline
@@ -218,7 +243,10 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
 
   header: {
     flexDirection: "row",
@@ -229,9 +257,30 @@ const styles = StyleSheet.create({
     borderBottomColor: "#333",
   },
 
-  username: { color: "white", fontSize: 18, fontWeight: "bold" },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 
-  profileInfo: { padding: 15 },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+
+  headerIcon: {
+    padding: 4,
+  },
+
+  username: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  profileInfo: {
+    padding: 15,
+  },
 
   avatarAndStats: {
     flexDirection: "row",
@@ -252,17 +301,34 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
   },
 
-  statItem: { alignItems: "center" },
+  statItem: {
+    alignItems: "center",
+  },
 
-  statNumber: { color: "white", fontSize: 18, fontWeight: "bold" },
+  statNumber: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 
-  statLabel: { color: COLORS.grey },
+  statLabel: {
+    color: COLORS.grey,
+  },
 
-  name: { color: "white", fontSize: 18, fontWeight: "bold" },
+  name: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 
-  bio: { color: "white", marginTop: 5 },
+  bio: {
+    color: "white",
+    marginTop: 5,
+  },
 
-  actionButtons: { marginTop: 15 },
+  actionButtons: {
+    marginTop: 15,
+  },
 
   editButton: {
     borderWidth: 1,
@@ -272,11 +338,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  editButtonText: { color: "white", fontWeight: "bold" },
+  editButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
 
-  gridItem: { flex: 1 / 3, aspectRatio: 1, padding: 1 },
+  gridItem: {
+    flex: 1 / 3,
+    aspectRatio: 1,
+    padding: 1,
+  },
 
-  gridImage: { width: "100%", height: "100%" },
+  gridImage: {
+    width: "100%",
+    height: "100%",
+  },
 
   noPostsContainer: {
     height: 300,
@@ -297,9 +373,15 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 
-  postDetailImage: { width: "100%", height: 400 },
+  postDetailImage: {
+    width: "100%",
+    height: 400,
+  },
 
-  modalContainer: { flex: 1, justifyContent: "flex-end" },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
 
   modalContent: {
     backgroundColor: COLORS.background,
@@ -317,7 +399,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  modalTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
+  modalTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 
   input: {
     backgroundColor: "#111",
@@ -336,5 +422,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  saveButtonText: { color: "white", fontWeight: "bold" },
+  saveButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
 });
