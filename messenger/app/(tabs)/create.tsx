@@ -1,40 +1,36 @@
+import { styles } from "@/assets/styles/create.styles";
+import { COLORS } from "@/constants/theme";
+import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/expo";
+import { Ionicons } from "@expo/vector-icons";
+import { useMutation } from "convex/react";
+import { File } from "expo-file-system";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import { fetch } from "expo/fetch";
+import { useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   ScrollView,
+  Text,
   TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { styles } from "@/assets/styles/create.styles";
-import { useUser } from "@clerk/expo";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "@/constants/theme";
-import * as ImagePicker from "expo-image-picker";
-import { Image } from "expo-image";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { File } from "expo-file-system";
-import { fetch } from "expo/fetch";
 
-export default function CreateScreen() {
+export default function ScreenCreate() {
   const router = useRouter();
   const { user } = useUser();
-
-  // Стан компонента
   const [caption, setCaption] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
 
-  // Convex mutations
   const generateUploadUrl = useMutation(api.posts.generateUploadUrl);
   const createPost = useMutation(api.posts.createPost);
 
-  // Вибір зображення з галереї
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: "images",
@@ -43,25 +39,21 @@ export default function CreateScreen() {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-    }
+    if (!result.canceled) setSelectedImage(result.assets[0].uri);
   };
 
-  // Публікація посту
   const handleShare = async () => {
     if (!selectedImage) return;
 
     try {
       setIsSharing(true);
 
-      // 1. Отримуємо URL для завантаження
       const uploadUrl = await generateUploadUrl();
 
-      // 2. Створюємо File з локального URI
+      // Create File instance from selected image URI
       const file = new File(selectedImage);
 
-      // 3. Завантажуємо файл
+      // Upload using new expo/fetch API
       const uploadResult = await fetch(uploadUrl, {
         method: "POST",
         body: file,
@@ -72,13 +64,12 @@ export default function CreateScreen() {
 
       if (!uploadResult.ok) throw new Error("Upload failed");
 
-      // 4. Отримуємо storageId та створюємо пост
       const { storageId } = await uploadResult.json();
       await createPost({ storageId, caption });
 
-      // 5. Скидаємо форму та переходимо на головну
       setSelectedImage(null);
       setCaption("");
+
       router.push("/(tabs)");
     } catch (error) {
       console.error("Error sharing post:", error);
@@ -87,7 +78,6 @@ export default function CreateScreen() {
     }
   };
 
-  // Рендер: стан без зображення
   if (!selectedImage) {
     return (
       <View style={styles.container}>
@@ -110,15 +100,14 @@ export default function CreateScreen() {
     );
   }
 
-  // Рендер: стан із зображенням
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 30}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       <View style={styles.contentContainer}>
-        {/* Header */}
+        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => {
@@ -133,7 +122,9 @@ export default function CreateScreen() {
               color={isSharing ? COLORS.grey : COLORS.white}
             />
           </TouchableOpacity>
+
           <Text style={styles.headerTitle}>New Post</Text>
+
           <TouchableOpacity
             style={[
               styles.shareButton,
@@ -154,9 +145,10 @@ export default function CreateScreen() {
           contentContainerStyle={styles.scrollContent}
           bounces={false}
           keyboardShouldPersistTaps="handled"
+          contentOffset={{ x: 0, y: 100 }}
         >
           <View style={[styles.content, isSharing && styles.contentDisabled]}>
-            {/* Image Section */}
+            {/* IMAGE SECTION */}
             <View style={styles.imageSection}>
               <Image
                 source={selectedImage}
@@ -174,7 +166,7 @@ export default function CreateScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Input Section */}
+            {/* INPUT SECTION */}
             <View style={styles.inputSection}>
               <View style={styles.captionContainer}>
                 <Image

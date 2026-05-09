@@ -2,91 +2,102 @@ import { StyleSheet } from "react-native";
 import { COLORS } from "@/constants/theme";
 
 export const styles = StyleSheet.create({
+  // Контейнер
   container: {
     flex: 1,
-    backgroundColor: COLORS.background || "#000",
-    paddingHorizontal: 16,
-    paddingTop: 10,
+    backgroundColor: COLORS.background,
   },
 
+  // Header
   header: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: COLORS.white || "#fff",
-    marginBottom: 16,
-  },
-
-  // (FlatList container)
-  list: {
-    paddingBottom: 80,
-  },
-
-  // notification item
-  notificationItem: {
-    flexDirection: "row",
-    alignItems: "center",
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.surfaceLight || "#333",
+    borderBottomColor: COLORS.surface,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: "JetBrainsMono-Medium",
+    color: COLORS.primary,
   },
 
+  // List
+  listContainer: {
+    padding: 16,
+  },
+
+  // Notification Item
+  notificationItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  notificationContent: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 12,
+  },
+
+  // Avatar
   avatarContainer: {
     position: "relative",
     marginRight: 12,
   },
-
-  // avatar
   avatar: {
-    width: 45,
-    height: 45,
-    borderRadius: 50,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: COLORS.surface,
   },
 
-  // badge
+  // Icon Badge
   iconBadge: {
     position: "absolute",
-    bottom: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 50,
+    bottom: -4,
+    right: -4,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: "#000",
+    borderColor: COLORS.surface,
   },
 
-  content: {
+  // Notification Info
+  notificationInfo: {
     flex: 1,
   },
-
-  // (username + action)
-  text: {
-    color: COLORS.white || "#fff",
-    fontSize: 14,
-  },
-
-  // username
   username: {
-    fontWeight: "bold",
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 2,
   },
-
-  // (time ago)
-  time: {
-    color: COLORS.grey || "#888",
+  action: {
+    color: COLORS.grey,
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  timeAgo: {
+    color: COLORS.grey,
     fontSize: 12,
-    marginTop: 2,
   },
 
-  // (NoNotificationsFound)
+  // Post Image
+  postImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 6,
+  },
+
+  // Centered (for empty state)
   centered: {
-    flex: 1,
-    alignItems: "center",
     justifyContent: "center",
-  },
-
-  emptyText: {
-    color: COLORS.grey || "#888",
-    fontSize: 16,
+    alignItems: "center",
   },
 });

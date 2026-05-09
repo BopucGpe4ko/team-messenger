@@ -1,164 +1,129 @@
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
-import { Image } from "expo-image";
-import { useAuth } from "@clerk/expo";
-import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Loader } from "@/components/Loader";
+import { useUser } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "@/constants/theme";
+import { useQuery } from "convex/react";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import React from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function ChatsScreen() {
-  const { userId } = useAuth();
+export default function ChatsListScreen() {
+  const { user } = useUser();
   const router = useRouter();
 
-  const currentUser = useQuery(
-    api.users.getUserByClerkId,
-    userId ? { clerkId: userId } : "skip"
-  );
+  const conversations = useQuery(api.chat.getConversations, {
+    userId: user?.id || "",
+  });
 
-  const conversations = useQuery(
-    api.chat.getConversations,
-    currentUser ? { userId: currentUser._id } : "skip"
-  );
-
-  if (!currentUser || !conversations) return <Loader />;
-
-  const renderChatItem = ({ item }: { item: any }) => {
-    return (
-      <TouchableOpacity
-        style={styles.chatItem}
-        onPress={() => router.push(`/chat/${item._id}`)}
-      >
-        <Image
-          source={item.otherUser.image}
-          style={styles.avatar}
-          contentFit="cover"
-          transition={200}
-        />
-        <View style={styles.chatInfo}>
-          <View style={styles.chatHeader}>
-            <Text style={styles.username}>{item.otherUser.username}</Text>
-            <Text style={styles.timestamp}>
-              {new Date(item.lastMessage?.timestamp || item._creationTime).toLocaleDateString()}
-            </Text>
-          </View>
-          <Text style={styles.lastMessage} numberOfLines={1}>
-            {item.lastMessage?.content || "No messages yet"}
-          </Text>
-        </View>
-      </TouchableOpacity>
+  const openChat = (
+    conversationId: string,
+    otherUserId: string,
+    otherUserName: string,
+  ) => {
+    router.push(
+      `/chat/${conversationId}?otherUserId=${otherUserId}&name=${encodeURIComponent(otherUserName)}`,
     );
   };
 
   return (
-    <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          padding: 16,
+          marginBottom: 5,
+        }}
+      >
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Messages</Text>
-        <View style={styles.placeholder} />
+        <Text
+          style={{
+            color: "#fff",
+            fontSize: 20,
+            fontWeight: "bold",
+            marginLeft: 15,
+          }}
+        >
+          My Chats
+        </Text>
       </View>
 
-      {/* CHAT LIST */}
-      <FlatList
-        data={conversations}
-        renderItem={renderChatItem}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubbles-outline" size={64} color={COLORS.grey} />
-            <Text style={styles.emptyText}>No messages yet</Text>
-            <Text style={styles.emptySubtext}>Start a conversation with someone</Text>
-          </View>
-        }
-      />
-    </View>
+      {conversations === undefined ? (
+        <ActivityIndicator
+          size="large"
+          color="#0000ff"
+          style={{ marginTop: 50 }}
+        />
+      ) : (
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item._id}
+          ListEmptyComponent={
+            <Text style={{ textAlign: "center", marginTop: 50, color: "#888" }}>
+              У вас поки немає жодного чату.
+            </Text>
+          }
+          renderItem={({ item }) => {
+            const otherUserId =
+              item.participantOneId === user?.id
+                ? item.participantTwoId
+                : item.participantOneId;
+            const otherUserName =
+              item.otherUser?.fullname ||
+              item.otherUser?.username ||
+              "Unknown User";
+
+            return (
+              <TouchableOpacity
+                style={{
+                  padding: 16,
+                  borderBottomWidth: 1,
+                  borderColor: "#333",
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+                onPress={() => openChat(item._id, otherUserId, otherUserName)}
+              >
+                <Image
+                  source={{
+                    uri:
+                      item.otherUser?.image ||
+                      "https://gravatar.com/avatar/placeholder?d=mp",
+                  }}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    marginRight: 15,
+                  }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontWeight: "bold", color: "#fff", fontSize: 16 }}
+                  >
+                    {otherUserName}
+                  </Text>
+                  <Text
+                    style={{ color: "#aaa", marginTop: 4 }}
+                    numberOfLines={1}
+                  >
+                    {item.lastMessageText || "Немає повідомлень"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.surface,
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.white,
-  },
-  placeholder: {
-    width: 32,
-  },
-  listContent: {
-    flexGrow: 1,
-  },
-  chatItem: {
-    flexDirection: "row",
-    padding: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.surface,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginRight: 12,
-  },
-  chatInfo: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  chatHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  username: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.white,
-  },
-  timestamp: {
-    fontSize: 12,
-    color: COLORS.grey,
-  },
-  lastMessage: {
-    fontSize: 14,
-    color: COLORS.grey,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 100,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: COLORS.white,
-    marginTop: 16,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLORS.grey,
-    marginTop: 8,
-  },
-});
