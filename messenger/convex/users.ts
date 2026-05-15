@@ -1,31 +1,32 @@
-import { Id } from "./_generated/dataModel";
-import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
+import { Id } from "./_generated/dataModel";
+import { mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 
 export const createUser = mutation({
   args: {
-    clerkId: v.string(),
-    email: v.string(),
     username: v.string(),
     fullname: v.string(),
-    image: v.string(),
+    email: v.string(),
     bio: v.optional(v.string()),
+    image: v.string(),
+    clerkId: v.string(),
   },
   handler: async (ctx, args) => {
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
       .first();
 
-    if (existingUser) return existingUser._id;
+    if (existingUser) return;
 
-    return await ctx.db.insert("users", {
-      clerkId: args.clerkId,
-      email: args.email,
+    await ctx.db.insert("users", {
       username: args.username,
       fullname: args.fullname,
+      email: args.email,
+      bio: args.bio,
       image: args.image,
-      bio: args.bio ?? "",
+      clerkId: args.clerkId,
       followers: 0,
       following: 0,
       posts: 0,
@@ -39,27 +40,12 @@ export const getAuthenticatedUser = async (ctx: QueryCtx | MutationCtx) => {
 
   const currentUser = await ctx.db
     .query("users")
-    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
     .first();
-
   if (!currentUser) throw new Error("User not found");
 
   return currentUser;
 };
-
-export const getUserByClerkId = query({
-  args: {
-    clerkId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .first();
-
-    return user;
-  },
-});
 
 export const updateProfile = mutation({
   args: {
@@ -73,6 +59,20 @@ export const updateProfile = mutation({
       fullname: args.fullname,
       bio: args.bio,
     });
+  },
+});
+
+export const getUserByClerkId = query({
+  args: {
+    clerkId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
+
+    return user;
   },
 });
 
@@ -101,25 +101,6 @@ export const isFollowing = query({
   },
 });
 
-async function updateFollowCounts(
-  ctx: MutationCtx,
-  followerId: Id<"users">,
-  followingId: Id<"users">,
-  isFollow: boolean,
-) {
-  const follower = await ctx.db.get(followerId);
-  const following = await ctx.db.get(followingId);
-
-  if (follower && following) {
-    await ctx.db.patch(followerId, {
-      following: follower.following + (isFollow ? 1 : -1),
-    });
-    await ctx.db.patch(followingId, {
-      followers: following.followers + (isFollow ? 1 : -1),
-    });
-  }
-}
-
 export const toggleFollow = mutation({
   args: { followingId: v.id("users") },
   handler: async (ctx, args) => {
@@ -132,21 +113,55 @@ export const toggleFollow = mutation({
       )
       .first();
 
+    const targetUser = await ctx.db.get(args.followingId);
+
+    if (!targetUser) throw new Error("User not found");
+
+    // 🔴 UNFOLLOW
     if (existing) {
       await ctx.db.delete(existing._id);
-      await updateFollowCounts(ctx, currentUser._id, args.followingId, false);
-    } else {
-      await ctx.db.insert("follows", {
-        followerId: currentUser._id,
-        followingId: args.followingId,
-      });
-      await updateFollowCounts(ctx, currentUser._id, args.followingId, true);
 
-      await ctx.db.insert("notifications", {
-        receiverId: args.followingId,
-        senderId: currentUser._id,
-        type: "follow",
+      await ctx.db.patch(currentUser._id, {
+        following: Math.max(0, currentUser.following - 1),
       });
+
+      await ctx.db.patch(args.followingId, {
+        followers: Math.max(0, targetUser.followers - 1),
+      });
+
+      return;
+    }
+
+    await ctx.db.insert("follows", {
+      followerId: currentUser._id,
+      followingId: args.followingId,
+    });
+
+    await ctx.db.patch(currentUser._id, {
+      following: currentUser.following + 1,
+    });
+
+    await ctx.db.patch(args.followingId, {
+      followers: targetUser.followers + 1,
+    });
+
+    await ctx.db.insert("notifications", {
+      receiverId: args.followingId,
+      senderId: currentUser._id,
+      type: "follow",
+    });
+
+    if (targetUser?.pushToken) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.pushNotifications.sendPushNotification,
+        {
+          pushToken: targetUser.pushToken,
+          title: "Новий підписник 👤",
+          body: `${currentUser.username} підписався на вас`,
+          data: { userId: currentUser._id },
+        },
+      );
     }
   },
 });
@@ -196,5 +211,18 @@ export const getStoriesUsers = query({
     ];
 
     return stories;
+  },
+});
+
+export const savePushToken = mutation({
+  args: {
+    pushToken: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const currentUser = await getAuthenticatedUser(ctx);
+
+    await ctx.db.patch(currentUser._id, {
+      pushToken: args.pushToken,
+    });
   },
 });

@@ -8,16 +8,12 @@ export default defineSchema({
     email: v.string(),
     bio: v.optional(v.string()),
     image: v.string(),
-
-    // optional additions from other branch
-    externalId: v.optional(v.string()),
-    tokenIdentifier: v.optional(v.string()),
-
-    clerkId: v.string(),
     followers: v.number(),
     following: v.number(),
     posts: v.number(),
-  }).index("by_clerk_id", ["clerkId"]),
+    clerkId: v.string(),
+    pushToken: v.optional(v.string()),
+  }).index("by_clerkId", ["clerkId"]),
 
   posts: defineTable({
     userId: v.id("users"),
@@ -77,18 +73,20 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_expires", ["expiresAt"]),
 
+  // Таблиця розмов (чатів) між двома користувачами
   conversations: defineTable({
-    participantOneId: v.string(),
-    participantTwoId: v.string(),
+    participantOneId: v.string(), // Clerk ID першого користувача
+    participantTwoId: v.string(), // Clerk ID другого користувача
     lastMessageText: v.optional(v.string()),
     lastMessageTime: v.optional(v.number()),
   })
     .index("by_participantOne", ["participantOneId"])
     .index("by_participantTwo", ["participantTwoId"]),
 
+  // Таблиця повідомлень
   messages: defineTable({
     conversationId: v.id("conversations"),
-    senderId: v.string(),
+    senderId: v.string(), // Clerk ID відправника
     text: v.string(),
     createdAt: v.number(),
   }).index("by_conversation", ["conversationId"]),

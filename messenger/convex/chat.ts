@@ -33,7 +33,7 @@ export const getConversations = query({
 
         const otherUser = await ctx.db
           .query("users")
-          .withIndex("by_clerk_id", (q) => q.eq("clerkId", otherUserId))
+          .withIndex("by_clerkId", (q) => q.eq("clerkId", otherUserId))
           .first();
 
         return { ...conv, otherUser };
