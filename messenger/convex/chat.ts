@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// 1. Отримати список чатів для поточного користувача зі збагаченням даними співрозмовника
 export const getConversations = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
