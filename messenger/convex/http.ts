@@ -14,7 +14,6 @@ http.route({
       throw new Error("Missing CLERK_WEBHOOK_SECRET environment variable");
     }
 
-    // Перевірка svix headers
     const svix_id = request.headers.get("svix-id");
     const svix_signature = request.headers.get("svix-signature");
     const svix_timestamp = request.headers.get("svix-timestamp");
@@ -31,7 +30,6 @@ http.route({
     const wh = new Webhook(webhookSecret);
     let evt: any;
 
-    // Верифікація webhook
     try {
       evt = wh.verify(body, {
         "svix-id": svix_id,

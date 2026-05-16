@@ -117,7 +117,6 @@ export const toggleFollow = mutation({
 
     if (!targetUser) throw new Error("User not found");
 
-    // 🔴 UNFOLLOW
     if (existing) {
       await ctx.db.delete(existing._id);
 

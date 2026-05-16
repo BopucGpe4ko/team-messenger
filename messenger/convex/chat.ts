@@ -74,7 +74,6 @@ export const getOrCreateConversation = mutation({
   },
 });
 
-// 3. Відправити повідомлення
 export const sendMessage = mutation({
   args: {
     conversationId: v.id("conversations"),
@@ -99,7 +98,6 @@ export const sendMessage = mutation({
   },
 });
 
-// 4. Отримати повідомлення конкретного чату
 export const getMessages = query({
   args: { conversationId: v.id("conversations") },
   handler: async (ctx, args) => {
